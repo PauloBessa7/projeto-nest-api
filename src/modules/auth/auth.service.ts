@@ -13,12 +13,11 @@ export class AuthService {
     username: string,
     pass: string,
   ): Promise<{ access_token: string }> {
-    // Corrigindo o método para buscar o usuário pelo nome de usuário
     const user = await this.usersService.findByEmail(username);
     if (!user || user.password !== pass) {
       throw new UnauthorizedException();
     }
-    const payload = { sub: user.id, username: user.firstName};
+    const payload = {id: user.id, name: user.name, email: user.email, isActive: user.isActive, createdAt: user.createdAt, updatedAt: user.updatedAt};
     return {
       access_token: await this.jwtService.signAsync(payload),
     };

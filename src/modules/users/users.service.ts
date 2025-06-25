@@ -14,9 +14,8 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const { email, password, firstName, lastName } = createUserDto;
+    const { email, password, name } = createUserDto;
 
-    // Verificar se o email já existe
     const existingUser = await this.usersRepository.findOne({ where: { email } });
     if (existingUser) {
       throw new ConflictException('Este email já está em uso.');
@@ -27,9 +26,8 @@ export class UsersService {
 
     const newUser = this.usersRepository.create({
       email,
-      password: password, // <-- AQUI! A senha é armazenada em texto puro.
-      firstName,
-      lastName,
+      password: password,
+      name: name,
     });
 
     return this.usersRepository.save(newUser);
@@ -37,11 +35,6 @@ export class UsersService {
 
   async findByEmail(email: string): Promise<User | undefined> {
     const user = await this.usersRepository.findOne({ where: { email } });
-    return user ?? undefined;
-  }
-
-  async findById(id: string): Promise<User | undefined> {
-    const user = await this.usersRepository.findOne({ where: { id } });
     return user ?? undefined;
   }
 }

@@ -1,22 +1,22 @@
 // src/modules/users/entities/user.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity('users') // Nome da tabela no banco de dados
+@Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid') // Gera um UUID para o ID
+  @PrimaryGeneratedColumn('uuid')
   id: string;
+  
+  @Column({ nullable: true })
+  name: string;
 
-  @Column({ unique: true }) // Garante que o email seja único
+  @Column({ unique: true })
   email: string;
 
   @Column()
-  password: string; // A senha será armazenada hashada
+  password: string;
 
-  @Column({ nullable: true }) // Opcional
-  firstName: string;
-
-  @Column({ nullable: true }) // Opcional
-  lastName: string;
+  @Column({ default: true })
+  isActive: boolean;
 
   @CreateDateColumn()
   createdAt: Date;
