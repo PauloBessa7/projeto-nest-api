@@ -1,62 +1,47 @@
 
-import { Injectable } from '@nestjs/common';
-import { Role } from './enum/user.enum';
-import { Plan } from './enum/plan.enum';
-import { v4 as uuidv4 } from 'uuid';
-
-export type User = any;
+import { ConflictException, Injectable } from '@nestjs/common';
+import { User } from './entities/user.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
-  private CompaignPos(title: string, description: string) {
-    const CompaignPost = {
-      id: uuidv4(),
-      title: title,
-      description: description,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+
+  constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+  ) {}
+
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const { email, password, firstName, lastName } = createUserDto;
+
+    // Verificar se o email já existe
+    const existingUser = await this.usersRepository.findOne({ where: { email } });
+    if (existingUser) {
+      throw new ConflictException('Este email já está em uso.');
     }
-    return CompaignPost;
+
+    // REMOVA o hashing da senha:
+    // const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = this.usersRepository.create({
+      email,
+      password: password, // <-- AQUI! A senha é armazenada em texto puro.
+      firstName,
+      lastName,
+    });
+
+    return this.usersRepository.save(newUser);
   }
 
-  private ListCompaignPost1() {
-    return [
-      this.CompaignPos('Compaign Post 1', 'Compaign Post 1 Description'),
-      this.CompaignPos('Compaign Post 2', 'Compaign Post 2 Description'),
-      this.CompaignPos('Compaign Post 3', 'Compaign Post 3 Description'),
-    ]
+  async findByEmail(email: string): Promise<User | undefined> {
+    const user = await this.usersRepository.findOne({ where: { email } });
+    return user ?? undefined;
   }
 
-  private readonly users = [
-    {
-      userId: uuidv4(),
-      username: 'john',
-      useremail: 'john@gmail.com',
-      password: 'changeme',
-      isActive: true,
-      expiresAt: new Date('2017-06-01'),
-      roles: [Role.Admin],
-      plan: Plan.PLATINUM,
-      compaignPost: this.ListCompaignPost1(),
-    },
-    {
-      userId: uuidv4(),
-      username: 'maria',
-      useremail: 'maria@gmail.com',
-      password: 'guess',
-      isActive: true,
-      expiresAt: new Date('2026-06-01'),
-      roles: [Role.User],
-      plan: Plan.GOLD,
-      compaignPost: this.ListCompaignPost1(),
-    },
-  ];
-
-  async findOne(username: string): Promise<User | undefined> {
-    return this.users.find(user => user.username === username);
-  }
-
-  createUser(): string {
-    return 'User created';
+  async findById(id: string): Promise<User | undefined> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    return user ?? undefined;
   }
 }
