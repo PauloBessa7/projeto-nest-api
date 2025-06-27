@@ -1,5 +1,6 @@
 // src/modules/users/entities/user.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { CampaignPost } from 'src/modules/campaign-posts/entities/campaign-posts.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 
 @Entity('users')
 export class User {
@@ -23,4 +24,7 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => CampaignPost, campaignPost => campaignPost.user)
+  campaignPosts: CampaignPost[]; // Propriedade para carregar uma coleção de CampaignPost
 }

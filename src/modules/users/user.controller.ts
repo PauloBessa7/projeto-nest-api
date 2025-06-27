@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
@@ -10,8 +10,8 @@ export class UserController {
 
     @Post()
     @SkipAuth()
-    @HttpCode(HttpStatus.CREATED) // Retorna status 201 Created
-    @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })) // Validação de DTO
+    @HttpCode(HttpStatus.CREATED)
+    @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
     async createUser(@Body() createUserDto: CreateUserDto): Promise<User> {
         return this.userService.create(createUserDto);
     }
