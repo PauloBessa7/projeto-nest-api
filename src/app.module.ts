@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 @Module({
   imports: [TypeOrmModule.forRoot({
@@ -15,6 +16,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     database: 'railway',
     entities: [__dirname + '/**/*.entity{.ts,.js}'], // Isso irá encontrar todas as entidades
     synchronize: true, // false em produção
+    namingStrategy: new SnakeNamingStrategy(),
   }),
   AuthModule, UsersModule],
   controllers: [AppController],
