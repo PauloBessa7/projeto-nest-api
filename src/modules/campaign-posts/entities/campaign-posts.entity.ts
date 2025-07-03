@@ -12,10 +12,10 @@ export class CampaignPost {
     @Column({ nullable: false })
     description: string;
 
-    @Column({ precision: 10, scale: 2 })
+    @Column({ type: 'decimal', precision: 10, scale: 2 })
     price: number;
 
-    @Column({ precision: 5, scale: 2, nullable: true })
+    @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
     promotion?: number;
 
     @CreateDateColumn()
@@ -27,7 +27,7 @@ export class CampaignPost {
     @Column({ nullable: false })
     urlAssociate: string;
 
-    @Column({ type: 'uuid' })
+    @Column({ type: 'uuid', nullable: false})
     userId: string;
 
     @Column({ nullable: false })

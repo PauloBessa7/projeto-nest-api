@@ -1,5 +1,4 @@
-import { Optional } from '@nestjs/common';
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsOptional } from 'class-validator';
 
 export class CreateCampaignPostsDto {
   @IsString({ message: 'Product title must be a string.' })
@@ -14,8 +13,8 @@ export class CreateCampaignPostsDto {
   @IsNotEmpty({ message: 'Price cannot be empty.' })
   price: number;
 
+  @IsOptional()
   @IsNumber({}, { message: 'Promotion must be a number.' })
-  @Optional()
   promotion?: number;
 
   @IsString({ message: 'Image URL must be a string.' })
@@ -25,7 +24,7 @@ export class CreateCampaignPostsDto {
   @IsString({ message: 'Associate URL must be a string.' })
   @IsNotEmpty({ message: 'Associate URL cannot be empty.' })
   urlAssociate: string;
-
+  
   // @IsString({ message: 'User ID must be a string.' })
   // @IsNotEmpty({ message: 'User ID cannot be empty.' })
   // userId: string;

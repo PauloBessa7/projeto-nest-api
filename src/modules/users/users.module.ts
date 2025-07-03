@@ -5,10 +5,11 @@ import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
+import { CampaignPost } from '../campaign-posts/entities/campaign-posts.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]) // <-- ESTA É A LINHA CRÍTICA! Certifique-se que está presente e com 'User'
+    TypeOrmModule.forFeature([User, CampaignPost])
   ],
   controllers: [UserController],
   providers: [UsersService, {
