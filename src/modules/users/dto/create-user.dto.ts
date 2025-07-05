@@ -1,5 +1,4 @@
-// src/modules/users/dto/create-user.dto.ts
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateUserDto {
     @IsString({ message: 'O nome deve ser uma string.' })
@@ -14,4 +13,16 @@ export class CreateUserDto {
     @MinLength(6, { message: 'A senha deve ter no mínimo 6 caracteres.' })
     @IsNotEmpty({ message: 'A senha não pode ser vazia.' })
     password: string;
+
+    @IsOptional()
+    @IsString()
+    publicKeyAmazon?: string;
+
+    @IsOptional()
+    @IsString()
+    privateKeyAmazon?: string;
+
+    @IsOptional()
+    @IsString()
+    partnerTagAmazon?: string;
 }

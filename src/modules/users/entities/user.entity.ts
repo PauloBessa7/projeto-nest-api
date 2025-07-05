@@ -1,12 +1,11 @@
-// src/modules/users/entities/user.entity.ts
 import { CampaignPost } from 'src/modules/campaign-posts/entities/campaign-posts.entity';
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, BeforeInsert } from 'typeorm';
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-  
+
   @Column({ nullable: true })
   name: string;
 
@@ -19,12 +18,27 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
-  @CreateDateColumn()
-  createdAt: Date;
+  @Column({ type: 'datetime', nullable: true })
+  expireAt: Date;
+  
+  @BeforeInsert()
+  protected setExpireAt(): void {
+    if (!this.expireAt) {
+      const now = new Date();
+      now.setDate(now.getDate() + 4);
+      this.expireAt = now;
+    }
+  }
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+  @Column({ nullable: true })
+  publicKeyAmazon: string
+
+  @Column({ nullable: true })
+  privateKeyAmazon: string
+
+  @Column({ nullable: true })
+  partnerTagAmazon: string
 
   @OneToMany(() => CampaignPost, campaignPost => campaignPost.user)
-  campaignPosts: CampaignPost[]; // Propriedade para carregar uma coleção de CampaignPost
+  campaignPosts: CampaignPost[];
 }

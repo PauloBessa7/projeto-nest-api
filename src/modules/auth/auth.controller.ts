@@ -7,11 +7,12 @@ import {
   HttpStatus,
   Post,
   Request,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '../../guards/auth.guard';
 import { AuthService } from './auth.service';
 import { SkipAuth } from 'src/common/decorators/public.decorator';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -20,9 +21,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   @SkipAuth()
-  signIn(@Body() signInDto: Record<string, any>) {
-    return this.authService.signIn(signInDto.username, signInDto.password);
-  }
+  signIn(@Body() loginDto: LoginDto) {
+    return this.authService.signIn(loginDto.email, loginDto.password);
+  }  
 
   @UseGuards(AuthGuard)
   @Get('profile')

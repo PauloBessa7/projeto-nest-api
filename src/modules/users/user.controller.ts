@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Get, Delete, Param, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, Get, Delete, Param, UsePipes, ValidationPipe, Logger } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
@@ -9,10 +9,11 @@ import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { UserPayload } from 'src/common/interfaces/user-payload.interface';
 import { CampaignPostResponseDto } from '../campaign-posts/dto/campaign-post-response.dto';
 import { UserProfileDto } from './dto/user-profile.dto';
-import { DeleteCampaignDto } from './dto/delete-campaign.dto';
+import { DeleteCampaignDto } from '../campaign-posts/dto/delete-campaign.dto';
 
 @Controller('users')
 export class UserController {
+    
     constructor(private readonly userService: UsersService) { }
 
     @Post()
@@ -21,6 +22,12 @@ export class UserController {
     @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
     async createUser(@Body() createUserDto: CreateUserDto): Promise<User> {
         return this.userService.create(createUserDto);
+    }
+
+    @Get('debug/all')
+    @SkipAuth()
+    async getAllUsers(): Promise<User[]> {
+        return this.userService.findAll();
     }
 
     @Post('create-campaign')
@@ -62,8 +69,7 @@ export class UserController {
           name: userWithCampaigns.name,
           email: userWithCampaigns.email,
           isActive: userWithCampaigns.isActive,
-          createdAt: userWithCampaigns.createdAt,
-          updatedAt: userWithCampaigns.updatedAt,
+          expireAt: userWithCampaigns.expireAt,
           campaignPosts: userWithCampaigns.campaignPosts?.map(campaign => ({
             id: campaign.id,
             productTitle: campaign.productTitle,

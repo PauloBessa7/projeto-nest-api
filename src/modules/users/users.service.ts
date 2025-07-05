@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CampaignPost } from '../campaign-posts/entities/campaign-posts.entity';
 import { CreateCampaignPostsDto } from '../campaign-posts/dto/create-campaign-posts.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -18,29 +19,35 @@ export class UsersService {
   ) { }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const { email, password, name } = createUserDto;
+    const { email, password, name, publicKeyAmazon, privateKeyAmazon, partnerTagAmazon } = createUserDto;
 
     const existingUser = await this.usersRepository.findOne({ where: { email } });
     if (existingUser) {
       throw new ConflictException('Este email já está em uso.');
     }
-
-    // REMOVA o hashing da senha:
-    // const hashedPassword = await bcrypt.hash(password, 10);
+    
+    const hash = await bcrypt.hash(password, 10);
 
     const newUser = this.usersRepository.create({
       email,
-      password: password,
+      password: hash,
       name: name,
+      publicKeyAmazon: publicKeyAmazon,
+      privateKeyAmazon: privateKeyAmazon,
+      partnerTagAmazon: partnerTagAmazon
     });
 
     return this.usersRepository.save(newUser);
   }
 
-  async findByEmail(email: string): Promise<User | undefined> {
-    const user = await this.usersRepository.findOne({ where: { email } });
-    return user ?? undefined;
+  async findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { email } });
   }
+
+  async findAll(): Promise<User[]> {
+    return this.usersRepository.find();
+  }
+  
 
   async createCampaignPost(id: string, createCampaignPostDto: CreateCampaignPostsDto): Promise<CampaignPost | undefined> {
     const campaign = this.campaignRespository.create({
