@@ -6,6 +6,7 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { APP_GUARD } from '@nestjs/core';
 import { ActiveUserGuard } from './guards/active-user.guard';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -30,6 +31,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
     }),
     AuthModule, UsersModule],
+  controllers: [
+    AppController
+  ],
   providers: [
     {
       provide: APP_GUARD,
