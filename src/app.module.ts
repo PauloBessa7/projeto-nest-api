@@ -25,7 +25,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        // ATENÇÃO: Mude para 'false' em produção e use migrations
         synchronize: configService.get<string>('NODE_ENV') !== 'production',
         namingStrategy: new SnakeNamingStrategy(),
       }),

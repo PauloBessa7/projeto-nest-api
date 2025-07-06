@@ -42,6 +42,9 @@ export class User {
   @Column({ nullable: true })
   partnerTagAmazon: string
 
+  @Column({default: "teste"})
+  teste: string
+
   @OneToMany(() => CampaignPost, campaignPost => campaignPost.user)
   campaignPosts: CampaignPost[];
 }

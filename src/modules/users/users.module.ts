@@ -4,15 +4,15 @@ import { UserController } from './user.controller';
 import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { CampaignPost } from '../campaign-posts/entities/campaign-posts.entity';
-import { CampaignPostsService } from '../campaign-posts/campaign-posts.service';
+import { CampaignPostsModule } from '../campaign-posts/campaign-posts.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, CampaignPost])
+    TypeOrmModule.forFeature([User]),
+    CampaignPostsModule
   ],
   controllers: [UserController],
-  providers: [UsersService, CampaignPostsService],
+  providers: [UsersService],
   exports: [UsersService],
 })
 export class UsersModule {}

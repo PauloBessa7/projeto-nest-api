@@ -3,10 +3,10 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
-import { CampaignPost } from '../campaign-posts/entities/campaign-posts.entity';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
+import { CampaignPostsService } from '../campaign-posts/campaign-posts.service';
 
 @Injectable()
 export class UsersService {
@@ -17,12 +17,10 @@ export class UsersService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
 
-    @InjectRepository(CampaignPost)
-    private campaignRespository: Repository<CampaignPost>,
-
     private readonly configService: ConfigService,
+    private readonly campaignPostsService: CampaignPostsService,
   ) {
-    this.encryptionKey = this.configService.get<string>('ENCRYPTION_KEY') || 'default-secret-key';
+    this.encryptionKey = this.configService.get<string>('ENCRYPTION_KEY')!;
     if (!this.encryptionKey) {
       throw new Error('A variável de ambiente ENCRYPTION_KEY não está definida.');
     }
@@ -46,11 +44,11 @@ export class UsersService {
 
       const key = crypto.scryptSync(this.encryptionKey, privateKeySalt, 32);
       const iv = crypto.randomBytes(16);
-      
+
       const cipher = crypto.createCipheriv(this.algorithm, key, iv);
       let encrypted = cipher.update(privateKeyAmazon, 'utf8', 'hex');
       encrypted += cipher.final('hex');
-      
+
       encryptedPrivateSalt = `${iv.toString('hex')}:${encrypted}`;
     }
 
@@ -71,11 +69,8 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { email } });
   }
 
-  async findUserCampaigns(userId: string): Promise<CampaignPost[]> {
-    return this.campaignRespository.find({
-      where: { userId },
-      order: { createdAt: 'DESC' }
-    });
+  async findUserCampaigns(userId: string) {
+    return this.campaignPostsService.findUserCampaigns(userId);
   }
 
   async findUserWithCampaigns(userId: string): Promise<User | null> {
@@ -93,20 +88,7 @@ export class UsersService {
   }
 
   async deleteCampaignPost(userId: string, campaignId: string): Promise<void> {
-    // Buscar a campanha para verificar se existe e se pertence ao usuário
-    const campaign = await this.campaignRespository.findOne({
-      where: { id: campaignId }
-    });
-
-    if (!campaign) {
-      throw new NotFoundException('Campanha não encontrada.');
-    }
-
-    if (campaign.userId !== userId) {
-      throw new ForbiddenException('Você não tem permissão para deletar esta campanha.');
-    }
-
-    await this.campaignRespository.remove(campaign);
+    return this.campaignPostsService.deleteCampaignPost(userId, campaignId);
   }
 
   private decryptPrivateKey(encryptedPrivateKey: string, salt: string): string {
@@ -116,19 +98,19 @@ export class UsersService {
     }
 
     if (!encryptedPrivateKey || !encryptedPrivateKey.includes(':')) {
-      return encryptedPrivateKey; 
+      return encryptedPrivateKey;
     }
 
     try {
       const key = crypto.scryptSync(this.encryptionKey, salt, 32);
-      
+
       const parts = encryptedPrivateKey.split(':');
       if (parts.length !== 2) {
         return encryptedPrivateKey;
       }
       const iv = Buffer.from(parts[0], 'hex');
       const encryptedText = parts[1];
-      
+
       const decipher = crypto.createDecipheriv(this.algorithm, key, iv);
       let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
@@ -162,12 +144,10 @@ export class UsersService {
       throw new NotFoundException('Usuário não encontrado.');
     }
 
-    // Verificar se o usuário está ativo
     if (!user.isActive) {
       throw new ForbiddenException('Sua conta está desativada. Entre em contato com o suporte.');
     }
 
-    // Criptografar a privateKeyAmazon se fornecida
     let encryptedPrivateKeyAmazon = updateUserDto.privateKeyAmazon;
     if (updateUserDto.privateKeyAmazon) {
       const privateKeySalt = crypto.randomBytes(16).toString('hex');
@@ -177,7 +157,7 @@ export class UsersService {
       let encrypted = cipher.update(updateUserDto.privateKeyAmazon, 'utf8', 'hex');
       encrypted += cipher.final('hex');
       encryptedPrivateKeyAmazon = iv.toString('hex') + ':' + encrypted;
-      
+
       user.privateSalt = privateKeySalt;
     }
 
