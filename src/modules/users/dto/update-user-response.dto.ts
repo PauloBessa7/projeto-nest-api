@@ -1,6 +1,4 @@
-import { CampaignPostResponseDto } from '../../campaign-posts/dto/campaign-post-response.dto';
-
-export class UserProfileDto {
+export class UpdateUserResponseDto {
   id: string;
   name: string;
   email: string;
@@ -9,5 +7,5 @@ export class UserProfileDto {
   secretKeyAmazon: string;
   publicKeyAmazon: string;
   partnerTagAmazon: string;
-  campaignPosts: CampaignPostResponseDto[];
+  message: string;
 } 

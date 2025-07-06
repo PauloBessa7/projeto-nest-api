@@ -11,8 +11,12 @@ export class CampaignPostsService {
         private campaignPostsRepository: Repository<CampaignPost>,
     ) { }
 
-    async create(createCampaignPostDto: CreateCampaignPostsDto): Promise<CampaignPost> {
-        const campaignPost = this.campaignPostsRepository.create(createCampaignPostDto);
-        return this.campaignPostsRepository.save(campaignPost);
-    }
+    async createCampaignPost(id: string, createCampaignPostDto: CreateCampaignPostsDto): Promise<CampaignPost | undefined> {
+        const campaign = this.campaignPostsRepository.create({
+          ...createCampaignPostDto,
+          userId: id
+        });
+    
+        return this.campaignPostsRepository.save(campaign);
+      }
 }

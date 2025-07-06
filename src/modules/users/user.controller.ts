@@ -1,33 +1,35 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Get, Delete, Param, UsePipes, ValidationPipe, Logger } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, Get, Delete, Param, UsePipes, ValidationPipe, Logger, UnauthorizedException, Put } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { SkipAuth } from 'src/common/decorators/public.decorator';
+import { SkipActiveCheck } from 'src/common/decorators/skip-active-check.decorator';
 import { CreateCampaignPostsDto } from '../campaign-posts/dto/create-campaign-posts.dto';
 import { CampaignPost } from '../campaign-posts/entities/campaign-posts.entity';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { UserPayload } from 'src/common/interfaces/user-payload.interface';
 import { CampaignPostResponseDto } from '../campaign-posts/dto/campaign-post-response.dto';
 import { UserProfileDto } from './dto/user-profile.dto';
-import { DeleteCampaignDto } from '../campaign-posts/dto/delete-campaign.dto';
+import { DeleteCampaignDto } from './dto/delete-campaign.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserResponseDto } from './dto/update-user-response.dto';
+import { CampaignPostsService } from '../campaign-posts/campaign-posts.service';
 
 @Controller('users')
 export class UserController {
     
-    constructor(private readonly userService: UsersService) { }
+    constructor(
+        private readonly userService: UsersService,
+        private readonly campaignPostsService: CampaignPostsService
+    ) { }
 
     @Post()
     @SkipAuth()
+    @SkipActiveCheck()
     @HttpCode(HttpStatus.CREATED)
     @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
     async createUser(@Body() createUserDto: CreateUserDto): Promise<User> {
         return this.userService.create(createUserDto);
-    }
-
-    @Get('debug/all')
-    @SkipAuth()
-    async getAllUsers(): Promise<User[]> {
-        return this.userService.findAll();
     }
 
     @Post('create-campaign')
@@ -37,7 +39,11 @@ export class UserController {
         @Body() createCampaignPost: CreateCampaignPostsDto,
         @CurrentUser() user: UserPayload
     ): Promise<CampaignPost | undefined> {
-        return this.userService.createCampaignPost(user.id, createCampaignPost);
+
+        if (user.expireAt < new Date()) {
+            throw new UnauthorizedException('Renove sua assinatura');
+        }
+        return this.campaignPostsService.createCampaignPost(user.id, createCampaignPost);
     }
 
     @Get('my-campaigns')
@@ -70,6 +76,9 @@ export class UserController {
           email: userWithCampaigns.email,
           isActive: userWithCampaigns.isActive,
           expireAt: userWithCampaigns.expireAt,
+          secretKeyAmazon: userWithCampaigns.privateKeyAmazon,
+          publicKeyAmazon: userWithCampaigns.publicKeyAmazon,
+          partnerTagAmazon: userWithCampaigns.partnerTagAmazon,
           campaignPosts: userWithCampaigns.campaignPosts?.map(campaign => ({
             id: campaign.id,
             productTitle: campaign.productTitle,
@@ -93,6 +102,29 @@ export class UserController {
     ): Promise<void> {
         await this.userService.deleteCampaignPost(user.id, params.campaignId);
     }
+
+    @Put('profile')
+    @HttpCode(HttpStatus.OK)
+    @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    async updateProfile(
+        @Body() updateUserDto: UpdateUserDto,
+        @CurrentUser() user: UserPayload
+    ): Promise<UpdateUserResponseDto> {
+        const updatedUser = await this.userService.updateUser(user.id, updateUserDto);
+        
+        return {
+            id: updatedUser.id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            isActive: updatedUser.isActive,
+            expireAt: updatedUser.expireAt,
+            secretKeyAmazon: updatedUser.privateKeyAmazon,
+            publicKeyAmazon: updatedUser.publicKeyAmazon,
+            partnerTagAmazon: updatedUser.partnerTagAmazon,
+            message: 'Perfil atualizado com sucesso!'
+        };
+    }
+  
 }
 
 

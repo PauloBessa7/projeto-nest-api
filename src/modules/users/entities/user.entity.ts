@@ -20,6 +20,9 @@ export class User {
 
   @Column({ type: 'datetime', nullable: true })
   expireAt: Date;
+
+  @Column({ nullable: true })
+  privateSalt: string;
   
   @BeforeInsert()
   protected setExpireAt(): void {

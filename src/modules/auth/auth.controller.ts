@@ -12,6 +12,7 @@ import {
 import { AuthGuard } from '../../guards/auth.guard';
 import { AuthService } from './auth.service';
 import { SkipAuth } from 'src/common/decorators/public.decorator';
+import { SkipActiveCheck } from 'src/common/decorators/skip-active-check.decorator';
 import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
@@ -21,14 +22,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   @SkipAuth()
+  @SkipActiveCheck()
   signIn(@Body() loginDto: LoginDto) {
     return this.authService.signIn(loginDto.email, loginDto.password);
   }  
-
-  @UseGuards(AuthGuard)
-  @Get('profile')
-  getProfile(@Request() req) {
-    return req.user;
-  }
-
 }
